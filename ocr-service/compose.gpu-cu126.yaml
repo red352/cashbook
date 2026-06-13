@@ -1,0 +1,22 @@
+services:
+  ocr:
+    image: cashbook-ocr:gpu-cu126
+    container_name: cashbook_ocr_gpu
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./.paddlex-cache:/app/.paddlex-cache
+    environment:
+      OCR_DEVICE: gpu
+      OCR_ENGINE: onnxruntime
+      OCR_CACHE_HOME: /app/.paddlex-cache
+      OCR_TEMP_DIR: /app/.paddlex-cache/tmp
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

@@ -26,6 +26,50 @@ const saveConfig = () => {
 
 const settingTab = ref(1);
 
+const ocrRulesText = ref("");
+const ocrRulesFile = ref("");
+const ocrRulesLoading = ref(false);
+const ocrRulesSaving = ref(false);
+
+const getOcrRules = () => {
+  ocrRulesLoading.value = true;
+  doApi
+    .get<any>("api/admin/entry/settings/ocrRules")
+    .then((res) => {
+      ocrRulesText.value = JSON.stringify(res.rules || {}, null, 2);
+      ocrRulesFile.value = res.file || "";
+    })
+    .finally(() => {
+      ocrRulesLoading.value = false;
+    });
+};
+
+const saveOcrRules = () => {
+  let rules;
+  try {
+    rules = JSON.parse(ocrRulesText.value || "{}");
+  } catch (err) {
+    Alert.error("OCR规则不是合法JSON");
+    return;
+  }
+  ocrRulesSaving.value = true;
+  doApi
+    .post("api/admin/entry/settings/ocrRules", rules)
+    .then(() => {
+      Alert.success("OCR规则保存成功");
+      getOcrRules();
+    })
+    .finally(() => {
+      ocrRulesSaving.value = false;
+    });
+};
+
+watch(settingTab, (tab) => {
+  if (tab === 3 && !ocrRulesText.value) {
+    getOcrRules();
+  }
+});
+
 const exporting = ref(false);
 const exportAll = () => {
   exporting.value = true;
@@ -191,6 +235,30 @@ const importImgAll = () => {
               ></path>
             </svg>
             备份与恢复
+          </button>
+          <button
+            @click="settingTab = 3"
+            :class="[
+              'py-4 px-1 border-b-2 font-medium text-sm transition-colors',
+              settingTab === 3
+                ? 'border-blue-500 text-blue-400'
+                : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300',
+            ]"
+          >
+            <svg
+              class="w-4 h-4 inline mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c.251.023.501.05.75.082m-.75-.082a24.301 24.301 0 00-4.5 0m4.5 0v-.437c0-.966.784-1.75 1.75-1.75h1c.966 0 1.75.784 1.75 1.75v.437m0 0c1.52.14 3.004.405 4.45.78m-4.45-.78v5.714c0 .597.237 1.17.659 1.591L19 14.5"
+              ></path>
+            </svg>
+            OCR规则
           </button>
         </nav>
       </div>
@@ -533,6 +601,46 @@ const importImgAll = () => {
                 </ul>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- OCR规则 -->
+        <div v-if="settingTab === 3" class="max-w-5xl mx-auto space-y-4">
+          <div class="bg-blue-900/20 border border-blue-700 rounded-lg p-4">
+            <h3 class="text-lg font-medium text-white mb-2">
+              截图账单 OCR 识别规则
+            </h3>
+            <p class="text-gray-300 text-sm">
+              规则用于控制支付宝、微信、美团月付截图里的金额列、标题列、日期格式和收支关键词。普通使用无需修改，适配页面变化时再调整。
+            </p>
+            <p v-if="ocrRulesFile" class="text-gray-400 text-xs mt-2">
+              保存位置：{{ ocrRulesFile }}
+            </p>
+          </div>
+
+          <textarea
+            v-model="ocrRulesText"
+            rows="24"
+            spellcheck="false"
+            class="w-full px-3 py-2 bg-gray-950 border border-gray-700 rounded-lg text-gray-100 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="正在加载OCR规则..."
+          ></textarea>
+
+          <div class="flex flex-wrap justify-end gap-3">
+            <button
+              @click="getOcrRules()"
+              :disabled="ocrRulesLoading"
+              class="px-5 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-white font-medium rounded-lg transition-colors"
+            >
+              {{ ocrRulesLoading ? "加载中..." : "重新加载" }}
+            </button>
+            <button
+              @click="saveOcrRules()"
+              :disabled="ocrRulesSaving"
+              class="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white font-medium rounded-lg transition-colors"
+            >
+              {{ ocrRulesSaving ? "保存中..." : "保存规则" }}
+            </button>
           </div>
         </div>
       </div>

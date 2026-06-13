@@ -66,6 +66,7 @@ export default defineEventHandler(async (event) => {
       payType: flow.payType,
       industryType: flow.type ? flow.type : flow.industryType || "",
       attribution: flow.attribution,
+      origin: flow.origin ? String(flow.origin) : null,
     });
   });
   // 在数据库中添加新数据

@@ -1,0 +1,102 @@
+# syntax=docker/dockerfile:1.7
+
+ARG BASE_IMAGE=nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04
+FROM ${BASE_IMAGE}
+
+WORKDIR /app
+
+ARG ONNXRUNTIME_PACKAGE=onnxruntime-gpu==1.20.1
+ARG ONNXRUNTIME_INDEX_URL=
+ARG PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+ARG PIP_EXTRA_INDEX_URL=https://pypi.org/simple
+ARG APT_DEBIAN_MIRROR=http://mirrors.aliyun.com/debian
+ARG APT_DEBIAN_SECURITY_MIRROR=http://mirrors.aliyun.com/debian-security
+ARG APT_UBUNTU_MIRROR=http://mirrors.aliyun.com/ubuntu
+ARG APT_EXTRA_PACKAGES=""
+ARG NVIDIA_REQUIRE_CUDA="cuda>=12.6"
+ARG OCR_PRELOAD_MODELS=false
+ARG OCR_PERFORMANCE_MODE=fast
+
+ENV PYTHONUNBUFFERED=1
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PIP_NO_COMPILE=1
+ENV PIP_CACHE_DIR=/tmp/pip-cache
+ENV PIP_INDEX_URL=${PIP_INDEX_URL}
+ENV PIP_EXTRA_INDEX_URL=${PIP_EXTRA_INDEX_URL}
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+ENV NVIDIA_REQUIRE_CUDA=${NVIDIA_REQUIRE_CUDA}
+ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/usr/local/nvidia/lib:/usr/local/nvidia/lib64"
+ENV OCR_DEVICE=gpu
+ENV OCR_ENGINE=onnxruntime
+ENV OCR_LANG=ch
+ENV OCR_VERSION=PP-OCRv6
+ENV OCR_PERFORMANCE_MODE=${OCR_PERFORMANCE_MODE}
+ENV OCR_ENABLE_MKLDNN=false
+ENV OCR_CPU_THREADS=2
+ENV OCR_REC_BATCH_SIZE=32
+ENV OCR_MODEL_SOURCE=bos
+ENV OCR_CACHE_HOME=/app/.paddlex-cache
+ENV OCR_TEMP_DIR=/app/.paddlex-cache/tmp
+ENV OCR_BAKED_CACHE_HOME=/opt/paddlex-cache
+ENV OCR_MAX_SINGLE_IMAGE_HEIGHT=6000
+ENV OCR_SLICE_HEIGHT=6000
+ENV OCR_SLICE_OVERLAP=320
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+  --mount=type=cache,target=/tmp/pip-cache \
+  set -eux; \
+  rm -f /etc/apt/apt.conf.d/docker-clean; \
+  printf '%s\n' 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache; \
+  for source_file in /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do \
+    if [ -f "$source_file" ]; then \
+      sed -i \
+        -e "s|http://deb.debian.org/debian|${APT_DEBIAN_MIRROR}|g" \
+        -e "s|http://security.debian.org/debian-security|${APT_DEBIAN_SECURITY_MIRROR}|g" \
+        -e "s|http://archive.ubuntu.com/ubuntu|${APT_UBUNTU_MIRROR}|g" \
+        -e "s|http://security.ubuntu.com/ubuntu|${APT_UBUNTU_MIRROR}|g" \
+        "$source_file"; \
+    fi; \
+  done; \
+  apt-get update; \
+  apt-get install -y --no-install-recommends \
+    ca-certificates \
+    libgomp1 \
+    libgl1 \
+    libglib2.0-0 \
+    zlib1g \
+    python3 \
+    python3-venv \
+    $APT_EXTRA_PACKAGES; \
+  python3 -m venv "$VIRTUAL_ENV"; \
+  "$VIRTUAL_ENV/bin/python" -m pip install --upgrade pip setuptools wheel
+
+COPY requirements-base.txt ./
+RUN --mount=type=cache,target=/tmp/pip-cache \
+  pip install --no-compile -r requirements-base.txt
+
+RUN --mount=type=cache,target=/tmp/pip-cache \
+  if [ -n "$ONNXRUNTIME_INDEX_URL" ]; then \
+    pip install --no-compile --index-url "$ONNXRUNTIME_INDEX_URL" --extra-index-url "$PIP_EXTRA_INDEX_URL" "$ONNXRUNTIME_PACKAGE"; \
+  else \
+    pip install --no-compile "$ONNXRUNTIME_PACKAGE"; \
+  fi
+
+COPY app.py docker-entrypoint.sh ./
+RUN chmod +x /app/docker-entrypoint.sh
+
+RUN if [ "$OCR_PRELOAD_MODELS" = "true" ]; then \
+    OCR_DEVICE=cpu \
+    OCR_CACHE_HOME="$OCR_BAKED_CACHE_HOME" \
+    OCR_TEMP_DIR="$OCR_BAKED_CACHE_HOME/tmp" \
+    python -c "import app; print(app.health())"; \
+  fi
+
+EXPOSE 8000
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

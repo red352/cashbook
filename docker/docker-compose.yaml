@@ -13,6 +13,7 @@ services:
       DATABASE_URL: "postgresql://postgres:postgres@cashbook_db:5432/cashbook?schema=public" # 数据库链接，【请自行修改！与你的数据库一致】
       # DATABASE_AUTO_MIGRATE: "false" # 由外部运维执行迁移时可关闭
       # DATABASE_BOOTSTRAP_URL: "postgresql://postgres:postgres@cashbook_db:5432/postgres"
+      # NUXT_OCR_SERVICE_URL: "http://ocr:8000/ocr" # 可选：截图账单 OCR 服务地址
       NUXT_DATA_PATH: "/app/data" # 数据存储未知，现在只有小票图片了，不建议修改
       NUXT_AUTH_SECRET: "auth_secret" # 前台登录加密使用的密钥 【自行修改！】
       NUXT_ADMIN_USERNAME: "admin" # 后台登录用户名
@@ -36,3 +37,18 @@ services:
       POSTGRES_DB: cashbook
     #ports:
     #  - 5432:5432 # 数据库端口，想要远程连接请放开注释，并建议自行修改端口
+
+  # 可选：截图账单 OCR 服务。CPU 镜像默认 turbo/tiny；GPU 最小启动请参考 ../ocr-service/compose.gpu-cu126.yaml。
+  # ocr:
+  #   container_name: cashbook_ocr
+  #   image: cashbook-ocr:cpu
+  #   pull_policy: build
+  #   build:
+  #     context: ../ocr-service
+  #     args:
+  #       OCR_PRELOAD_MODELS: "false" # true 时构建镜像阶段预下载 OCR 模型，首次启动会复制到 ./ocr-cache
+  #   restart: always
+  #   volumes:
+  #     - ./ocr-cache:/app/.paddlex-cache # 持久化 PaddleOCR/PaddleX 模型缓存，避免重建镜像或重建容器后重复下载
+  #   ports:
+  #     - 8000:8000

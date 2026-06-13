@@ -8,3 +8,11 @@ data/
 doc/
 038-docker-database-migration-sync.md
 Dockerfile copy
+
+# Local OCR development artifacts. The OCR service is built from its own
+# context, so these caches must not be sent with the main app build context.
+ocr-service/.venv/
+ocr-service/.paddlex-cache/
+ocr-service/__pycache__/
+ocr-service/**/*.pyc
+docker/ocr-cache/

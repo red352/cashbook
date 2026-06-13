@@ -101,6 +101,8 @@ export default defineNuxtConfig({
     authSecret: "",
     adminUsername: "",
     adminPassword: "",
+    ocrServiceUrl: "",
+    ocrRequestTimeoutMs: "60000",
   },
 
   modules: [

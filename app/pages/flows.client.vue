@@ -23,7 +23,7 @@
     <!-- 导入导出抽屉 -->
     <FlowsImportDrawer :show="importDrawer" @close="importDrawer = false" @import-alipay="openCsvImport('alipay')"
       @import-wechat="openCsvImport('wxpay')" @import-jd="openCsvImport('jdFinance')"
-      @custom-import="showFlowCustomImport" @import-json="openJsonImport" @export-json="exportJson"
+      @import-screenshot="openScreenshotImport" @custom-import="showFlowCustomImport" @import-json="openJsonImport" @export-json="exportJson"
       @export-csv="exportCsv" @download-template="downloadCsvTemplate" @import-template="importCsvTemplate" />
 
     <!-- CSV流水导入对话框 -->
@@ -62,6 +62,13 @@
 
     <!-- JSON导入对话框 -->
     <FlowJsonImportDialog v-if="showFlowJsonImportDialog" :success-callback="doQuery" />
+
+    <!-- 截图账单导入对话框 -->
+    <FlowScreenshotImportDialog
+      v-if="showFlowScreenshotImportDialog"
+      :success-callback="doQuery"
+      @close="showFlowScreenshotImportDialog = false"
+    />
 
     <!-- 批量修改类型对话框 -->
     <div v-if="showBatchChangeDialog" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
@@ -170,6 +177,7 @@ import FlowAutoMergeDialog from "~/components/dialog/FlowAutoMergeDialog.vue";
 import FlowAutoDeduplicationDialog from "~/components/dialog/FlowAutoDeduplicationDialog.vue";
 import FlowEditDialog from "~/components/dialog/FlowEditDialog.vue";
 import FlowEditInvoiceDialog from "~/components/dialog/FlowEditInvoiceDialog.vue";
+import FlowScreenshotImportDialog from "~/components/dialog/FlowScreenshotImportDialog.vue";
 import {
   showAutoMergeFlowsDialog,
   showAutoDeduplicationFlowsDialog,
@@ -207,6 +215,7 @@ const selectedFlows = ref<any[]>([]);
 const searchDrawer = ref(false);
 const importDrawer = ref(false);
 const showFlowCustomImportDialog = ref(false);
+const showFlowScreenshotImportDialog = ref(false);
 const showBatchChangeDialog = ref(false);
 const loading = ref(false);
 
@@ -712,6 +721,11 @@ const showFlowCustomImport = () => {
 
 const openJsonImport = () => {
   showFlowJsonImportDialog.value = true;
+  importDrawer.value = false;
+};
+
+const openScreenshotImport = () => {
+  showFlowScreenshotImportDialog.value = true;
   importDrawer.value = false;
 };
 

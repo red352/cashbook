@@ -1,0 +1,9 @@
+services:
+  ocr:
+    image: cashbook-ocr:cpu
+    container_name: cashbook_ocr_cpu
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./.paddlex-cache:/app/.paddlex-cache
