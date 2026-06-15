@@ -1,14 +1,14 @@
 <template>
   <div
-    class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+    class="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4"
     @click="closeDialog"
   >
     <div
-      class="bg-surface dark:bg-surface-dark rounded-lg shadow-xl w-full max-w-6xl max-h-[92vh] flex flex-col border border-frame dark:border-frame-dark"
+      class="bg-surface dark:bg-surface-dark rounded-t-lg sm:rounded-lg shadow-xl w-full sm:max-w-6xl h-[100dvh] sm:h-auto sm:max-h-[92vh] flex flex-col border border-frame dark:border-frame-dark"
       @click.stop
     >
       <div
-        class="px-4 py-3 border-b border-frame-light dark:border-frame-dark flex justify-between items-center"
+        class="px-3 sm:px-4 py-3 border-b border-frame-light dark:border-frame-dark flex justify-between items-center"
       >
         <h3 class="text-lg font-semibold text-ink-primary dark:text-ink-onDark">
           截图账单导入
@@ -21,8 +21,8 @@
         </button>
       </div>
 
-      <div class="p-4 border-b border-frame-light dark:border-frame-dark">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div class="p-3 sm:p-4 border-b border-frame-light dark:border-frame-dark">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <div>
             <label class="block text-sm font-medium text-ink-secondary dark:text-ink-onDark mb-1">
               账单来源
@@ -54,7 +54,7 @@
             />
           </div>
 
-          <div>
+          <div class="col-span-2 sm:col-span-1">
             <label class="block text-sm font-medium text-ink-secondary dark:text-ink-onDark mb-1">
               流水归属
             </label>
@@ -66,7 +66,7 @@
             />
           </div>
 
-          <div class="flex items-end gap-2">
+          <div class="col-span-2 lg:col-span-1 flex flex-col sm:flex-row sm:items-end gap-2">
             <input
               ref="fileInput"
               type="file"
@@ -77,7 +77,7 @@
             />
             <button
               @click="() => fileInput?.click()"
-              class="flex-1 px-3 py-2 bg-surface-muted hover:bg-surface-soft dark:bg-surface-darkMuted dark:hover:bg-surface-dark text-ink-secondary dark:text-ink-onDark rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              class="flex-1 min-w-0 px-3 py-2 bg-surface-muted hover:bg-surface-soft dark:bg-surface-darkMuted dark:hover:bg-surface-dark text-ink-secondary dark:text-ink-onDark rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
             >
               <PhotoIcon class="w-4 h-4" />
               {{ files.length > 0 ? `${files.length} 张图片` : "选择图片" }}
@@ -85,7 +85,7 @@
             <button
               @click="recognizeScreenshots"
               :disabled="recognizing || files.length === 0"
-              class="px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              class="w-full sm:w-auto px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
             >
               <span
                 v-if="recognizing"
@@ -105,20 +105,20 @@
         </div>
       </div>
 
-      <div class="flex-1 overflow-hidden p-4">
+      <div class="flex-1 min-h-0 overflow-hidden p-2 sm:p-4">
         <div
           v-if="candidates.length === 0"
-          class="h-72 border-2 border-dashed border-frame-light dark:border-frame-dark rounded-lg flex flex-col items-center justify-center text-ink-muted dark:text-ink-onDark/70"
+          class="h-full min-h-72 border-2 border-dashed border-frame-light dark:border-frame-dark rounded-lg flex flex-col items-center justify-center text-ink-muted dark:text-ink-onDark/70 px-4 text-center"
         >
           <PhotoIcon class="w-10 h-10 mb-3" />
           <div class="text-sm">选择账单长截图后开始识别</div>
         </div>
 
-        <div v-else class="h-full flex flex-col border border-frame-light dark:border-frame-dark rounded-lg overflow-hidden">
-          <div class="px-3 py-2 bg-surface-soft dark:bg-surface-darkMuted border-b border-frame-light dark:border-frame-dark flex flex-wrap gap-3 items-center justify-between">
-            <div class="text-sm text-ink-secondary dark:text-ink-onDark">
+        <div v-else class="h-full min-h-0 flex flex-col border border-frame-light dark:border-frame-dark rounded-lg overflow-hidden">
+          <div class="px-3 py-2 bg-surface-soft dark:bg-surface-darkMuted border-b border-frame-light dark:border-frame-dark flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+            <div class="text-sm text-ink-secondary dark:text-ink-onDark leading-6">
               共识别 {{ candidates.length }} 条，已选 {{ selectedCount }} 条
-              <span v-if="lowConfidenceCount > 0" class="text-state-warning ml-2">
+              <span v-if="lowConfidenceCount > 0" class="text-state-warning sm:ml-2 block sm:inline">
                 {{ lowConfidenceCount }} 条需确认
               </span>
             </div>
@@ -128,7 +128,7 @@
             </label>
           </div>
 
-          <div class="overflow-auto max-h-[56vh]">
+          <div class="hidden md:block overflow-auto max-h-[56vh]">
             <table class="w-full min-w-[920px]">
               <thead class="bg-surface-soft dark:bg-surface-darkMuted sticky top-0 z-10">
                 <tr class="border-b border-frame-light dark:border-frame-dark">
@@ -212,22 +212,112 @@
               </tbody>
             </table>
           </div>
+
+          <div class="md:hidden flex-1 min-h-0 overflow-y-auto divide-y divide-frame-light dark:divide-frame-dark">
+            <div
+              v-for="(item, index) in candidates"
+              :key="index"
+              :class="[
+                'p-3 space-y-3',
+                item.confidence < minConfidence ? 'bg-state-warning/10' : '',
+              ]"
+            >
+              <div class="flex items-center justify-between gap-3">
+                <label class="min-w-0 flex items-center gap-2 text-sm text-ink-secondary dark:text-ink-onDark">
+                  <input v-model="item.selected" type="checkbox" />
+                  <span class="truncate">第 {{ index + 1 }} 条</span>
+                </label>
+                <span
+                  :class="[
+                    'shrink-0 px-2 py-1 rounded text-xs',
+                    item.confidence < minConfidence
+                      ? 'bg-state-warning/20 text-state-warning'
+                      : 'bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200',
+                  ]"
+                >
+                  {{ Math.round(item.confidence * 100) }}%
+                </span>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-ink-muted mb-1">
+                  名称
+                </label>
+                <input
+                  v-model="item.name"
+                  type="text"
+                  class="w-full px-3 py-2 text-sm border border-frame dark:border-frame-dark rounded bg-surface dark:bg-surface-dark text-ink-primary dark:text-ink-onDark"
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-xs font-medium text-ink-muted mb-1">
+                    日期
+                  </label>
+                  <input
+                    v-model="item.day"
+                    type="date"
+                    class="w-full px-3 py-2 text-sm border border-frame dark:border-frame-dark rounded bg-surface dark:bg-surface-dark text-ink-primary dark:text-ink-onDark"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-ink-muted mb-1">
+                    金额
+                  </label>
+                  <input
+                    v-model.number="item.money"
+                    type="number"
+                    step="0.01"
+                    class="w-full px-3 py-2 text-sm border border-frame dark:border-frame-dark rounded bg-surface dark:bg-surface-dark text-ink-primary dark:text-ink-onDark"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-ink-muted mb-1">
+                    收支
+                  </label>
+                  <select
+                    v-model="item.flowType"
+                    class="w-full px-3 py-2 text-sm border border-frame dark:border-frame-dark rounded bg-surface dark:bg-surface-dark text-ink-primary dark:text-ink-onDark"
+                  >
+                    <option value="支出">支出</option>
+                    <option value="收入">收入</option>
+                    <option value="不计收支">不计收支</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-ink-muted mb-1">
+                    类型
+                  </label>
+                  <input
+                    v-model="item.industryType"
+                    type="text"
+                    class="w-full px-3 py-2 text-sm border border-frame dark:border-frame-dark rounded bg-surface dark:bg-surface-dark text-ink-primary dark:text-ink-onDark"
+                  />
+                </div>
+              </div>
+
+              <div v-if="item.description" class="text-xs text-ink-muted break-words">
+                {{ item.description }}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       <div
-        class="px-4 py-3 border-t border-frame-light dark:border-frame-dark bg-surface-soft dark:bg-surface-darkMuted flex flex-col sm:flex-row justify-end gap-2"
+        class="px-3 sm:px-4 py-3 border-t border-frame-light dark:border-frame-dark bg-surface-soft dark:bg-surface-darkMuted flex flex-col sm:flex-row sm:justify-end gap-2"
       >
         <button
           @click="closeDialog"
-          class="px-4 py-2 bg-surface-muted hover:bg-surface-soft dark:bg-surface-darkMuted dark:hover:bg-surface-dark text-ink-secondary dark:text-ink-onDark rounded text-sm font-medium transition-colors"
+          class="w-full sm:w-auto px-4 py-2 bg-surface-muted hover:bg-surface-soft dark:bg-surface-darkMuted dark:hover:bg-surface-dark text-ink-secondary dark:text-ink-onDark rounded text-sm font-medium transition-colors"
         >
           取消
         </button>
         <button
           @click="submitImport"
           :disabled="importing || selectedCount === 0"
-          class="px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
+          class="w-full sm:w-auto px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded text-sm font-medium transition-colors flex items-center justify-center gap-2"
         >
           <span
             v-if="importing"
